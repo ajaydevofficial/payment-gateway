@@ -5,5 +5,5 @@ class document(models.Model):
     name = models.CharField(max_length=200)
     doc = models.FileField()
 
-    def __init__(self):
-        return self.name
+    def __str__(self):
+        return str(self.name)

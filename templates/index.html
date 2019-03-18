@@ -24,6 +24,7 @@
 			<form id="signup-form" method="post" action="#">{% csrf_token %}
 				<input type="submit" value="Pay ₹1" />
 			</form>
+			<a href="{{file.doc.url}}" download>View Integration Docs</a>
 
 		<!-- Footer -->
 			<footer id="footer">
@@ -39,7 +40,7 @@
 			</footer>
 
 		<!-- Scripts -->
-			<script src="assets/js/main.js"></script>
+			<script src="static/js/main.js"></script>
 
 	</body>
 </html>
