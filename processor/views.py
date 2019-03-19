@@ -15,18 +15,30 @@ def home_page(request):
     except:
         pass
     #order-paylod variables which are mandatory
-    MID = 'KLUIOi74399454829212' #use your test or original MID from paytm buisness account
-    ORDER_ID = str(order_id.objects.all().values('order_id')[0]['order_id'])
-    CUST_ID = 'Customer_ID' #use different ID for different customers
-    TXN_AMOUNT = 1.00 #change value accordingly
-    CHANNEL_ID = 'WEB'
-    WEBSITE = 'WEBSTAGING'
-    INDUSTRY_TYPE_ID = 'Retail'
-    CALLBACK_URL = 'http://127.0.0.1:8000/completed'
+    MERCHANT_KEY = 'jKc6NjVk0T1eZ0Bg'
+    data_dict = {
 
+        'MID' :'KLUIOi74399454829212', #use your test or original MID from paytm buisness account
+        'ORDER_ID' : str(order_id.objects.all().values('order_id')[0]['order_id']),
+        'CUST_ID' : 'Customer_ID', #use different ID for different customers
+        'TXN_AMOUNT' : '1.00', #change value accordingly
+        'CHANNEL_ID' : 'WEB',
+        'WEBSITE' : 'WEBSTAGING',
+        'INDUSTRY_TYPE_ID' : 'Retail',
+        #'CALLBACK_URL' : 'http://127.0.0.1:8000',
+
+    }
 
     if request.method=='POST':
-        CHECKSUMHASH = ''
+        data_dict['CHECKSUMHASH'] = generate_checksum(data_dict,MERCHANT_KEY)
+        param_dict = data_dict
+        context['paytm_code']="<h1 hidden>Merchant Check Out Page</h1></br><form method='post' action='https://pguat.paytm.com/oltp-web/processTransaction' name='f1'>"
+        for key in param_dict:
+            context['paytm_code']+="<input type='hidden' name="'+key.strip()+'"value="'+param_dict[key].strip()+'">"
+        context['paytm_code']+="<script type='text/javascript'>"
+        context['paytm_code']+="document.f1.submit();"
+        context['paytm_code']+='</script>'
+        context['paytm_code']+='</form>'
 
 
     return render(request,"index.html",context)

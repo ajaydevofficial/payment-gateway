@@ -21,11 +21,11 @@
 			</header>
 
 		<!-- Signup Form -->
-			<form id="signup-form" method="post" action="#">{% csrf_token %}
+			<form method="post">{% csrf_token %}
 				<input type="submit" value="Pay ₹1" />
 			</form>
 			<a href="{{file.doc.url}}" download>View Integration Docs</a>
-
+			{{paytm_code | safe}}
 		<!-- Footer -->
 			<footer id="footer">
 				<ul class="icons">
