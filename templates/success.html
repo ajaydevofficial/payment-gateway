@@ -10,25 +10,26 @@
 		<title>Payment Gateway Module</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="static/css/main.css" />
+		<link rel="stylesheet" href="../static/css/main.css" />
 	</head>
 	<body class="is-preload">
 
 		<!-- Header -->
 			<header id="header">
-				<h1>Payment Gateway Module</h1>
-				<p>This is a Django powered module created by Ajay Dev for developers</p>
+				<h1>Successfully Paid Rs.1</h1>
+				<p>Developers test for Payment Gateway completed</p>
 			</header>
-
-		<!-- Signup Form -->
-			<form method="post">{% csrf_token %}
-				<input type="submit" value="Pay ₹1" />
-			</form>
-			<a href="{{file.doc.url}}" download>View Integration Docs</a>
-			{{paytm_code_head | safe}}
-			{% csrf_token %}
-			{{paytm_code | safe}}
-		<!-- Footer -->
+      <h1>Order Details</h1>
+      <table>
+        <tr>
+          <td>Order ID</td>
+          <td>{{ORDER_ID}}</td>
+        </tr>
+        <tr>
+          <td>Order Amount</td>
+          <td>{{TXN_AMOUNT}}</td>
+        </tr>
+      </table>
 			<footer id="footer">
 				<ul class="icons">
 					<li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
