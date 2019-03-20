@@ -22,13 +22,13 @@ def home_page(request):
     data_dict = {
 
         'MID' :'KLUIOi74399454829212', #use your test or original MID from paytm buisness account
-        'ORDER_ID' : str(order_id.objects.all().values('order_id')[0]['order_id']+1),
+        'ORDER_ID' : str(order_id.objects.all().values('order_id')[0]['order_id']),
         'CUST_ID' : 'Customer_ID', #use different ID for different customers
         'TXN_AMOUNT' : '1.00', #change value accordingly
         'CHANNEL_ID' : 'WEB',
         'WEBSITE' : 'WEBSTAGING',
         'INDUSTRY_TYPE_ID' : 'Retail',
-        'CALLBACK_URL' : 'http://127.0.0.1:8000/response/',
+        'CALLBACK_URL' : 'http://127.0.0.1:8000/response/',#this for staging_purpose use your own response url
 
     }
     if request.method=='POST':
@@ -43,7 +43,7 @@ def home_page(request):
         context['paytm_code']+="document.f1.submit();"
         context['paytm_code']+='</script>'
         context['paytm_code']+='</form>'
-        order_id.objects.update(order)
+        order_id.objects.update(order_id = int(order_id.objects.all().values('order_id')[0]['order_id'] + 1) )
 
         request.session['MID'] = data_dict['MID']
         request.session['ORDER_ID'] = data_dict['ORDER_ID']
@@ -80,6 +80,7 @@ def response_page(request):
                 'ORDER_ID':request.POST['ORDERID'],
                 'TXN_AMOUNT':request.POST['TXNAMOUNT']
             }
+            
             return render(request,"success.html",context)
 
     	else:
