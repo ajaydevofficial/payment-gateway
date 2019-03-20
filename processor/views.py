@@ -46,7 +46,7 @@ def home_page(request):
         context['paytm_code']+='</script>'
         context['paytm_code']+='</form>'
         order_id.objects.update(order_id = int(order_id.objects.all().values('order_id')[0]['order_id'] + 1) )
-
+        request.session['CHECKSUMHASH'] = data_dict['CHECKSUMHASH']
 
     return render(request,"index.html",context)
 
@@ -65,16 +65,32 @@ def response_page(request):
     	if respons_dict['GATEWAYNAME'] == 'WALLET':
     		respons_dict['BANKNAME'] = 'null';
 
-    verify = verify_checksum(respons_dict, MERCHANT_KEY, checksum)
+        #use a checksum verifying function if needed
 
-    if verify:
+    if respons_dict['RESPCODE'] == '01':
+        context = {
+            'ORDER_ID':request.POST['ORDERID'],
+            'TXN_AMOUNT':request.POST['TXNAMOUNT']
+        }
+        order_success.objects.create(
+            order_id = request.POST['ORDERID'] ,
+            txn_id = request.POST['TXNID'] ,
+            txn_amount = request.POST['TXNAMOUNT'] ,
+            txn_date = request.POST['TXNDATE'] ,
+            currency = request.POST['CURRENCY'] ,
+            status = request.POST['STATUS'] ,
+            resp_msg = request.POST['RESPMSG'] ,
+            payment_mode = request.POST['PAYMENTMODE'] ,
+            gateway_name = request.POST['GATEWAYNAME'] ,
+            bank_txn_id = request.POST['BANKTXNID'] ,
+            bank_name = request.POST['BANKNAME']
+        )
 
-    	if respons_dict['RESPCODE'] == '01':
-            context = {
-                'ORDER_ID':request.POST['ORDERID'],
-                'TXN_AMOUNT':request.POST['TXNAMOUNT']
-            }
-            order_success.objects.create(
+        return render(request,"success.html",context)
+
+    else:
+        try:
+            order_failure.objects.create(
 
                 order_id = request.POST['ORDERID'] ,
                 txn_id = request.POST['TXNID'] ,
@@ -87,37 +103,11 @@ def response_page(request):
                 gateway_name = request.POST['GATEWAYNAME'] ,
                 bank_txn_id = request.POST['BANKTXNID'] ,
                 bank_name = request.POST['BANKNAME']
-
-
             )
-
-            return render(request,"success.html",context)
-
-    	else:
-
-            try:
-                order_failure.objects.create(
-
-                    order_id = request.POST['ORDERID'] ,
-                    txn_id = request.POST['TXNID'] ,
-                    txn_amount = request.POST['TXNAMOUNT'] ,
-                    txn_date = request.POST['TXNDATE'] ,
-                    currency = request.POST['CURRENCY'] ,
-                    status = request.POST['STATUS'] ,
-                    resp_msg = request.POST['RESPMSG'] ,
-                    payment_mode = request.POST['PAYMENTMODE'] ,
-                    gateway_name = request.POST['GATEWAYNAME'] ,
-                    bank_txn_id = request.POST['BANKTXNID'] ,
-                    bank_name = request.POST['BANKNAME']
-
-
-                )
-            except:
+        except:
                 pass
 
-            return render(request,"unsuccess.html",context)
+        return render(request,"unsuccess.html",context)
 
-    else:
-    	return render(request,"unsuccess.html",context)
 
     return render(request,"success.html",context)
