@@ -1,2 +1,2 @@
 # payment-gateway
-A Payment Gateway integrated module for developers
+A Paytm Payment Gateway integrated module for developers
