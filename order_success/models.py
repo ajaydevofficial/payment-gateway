@@ -16,4 +16,4 @@ class order_success(models.Model):
     bank_name = models.CharField(max_length = 200,default='')
 
     def __str__(self):
-        return str(order_id)
+        return self.order_id

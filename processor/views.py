@@ -96,7 +96,7 @@ def response_page(request):
     	else:
 
             try:
-                order_success.objects.create(
+                order_failure.objects.create(
 
                     order_id = request.POST['ORDERID'] ,
                     txn_id = request.POST['TXNID'] ,
@@ -113,7 +113,7 @@ def response_page(request):
 
                 )
             except:
-                order_success.objects.create(
+                order_failure.objects.create(
 
                     order_id = request.POST['ORDERID'] ,
                     txn_id = request.POST['TXNID'] ,
