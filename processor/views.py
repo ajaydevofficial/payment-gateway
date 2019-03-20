@@ -2,6 +2,7 @@ from django.shortcuts import render,redirect
 from Document.models import document
 from order_payload.models import order_id
 from order_success.models import order_success
+from order_failure.models import order_failure
 from django.views.decorators.csrf import csrf_exempt
 from .checksum import *
 import requests
@@ -93,6 +94,38 @@ def response_page(request):
             return render(request,"success.html",context)
 
     	else:
+
+            try:
+                order_success.objects.create(
+
+                    order_id = request.POST['ORDERID'] ,
+                    txn_id = request.POST['TXNID'] ,
+                    txn_amount = request.POST['TXNAMOUNT'] ,
+                    txn_date = request.POST['TXNDATE'] ,
+                    currency = request.POST['CURRENCY'] ,
+                    status = request.POST['STATUS'] ,
+                    resp_msg = request.POST['RESPMSG'] ,
+                    payment_mode = request.POST['PAMENTMODE'] ,
+                    gateway_name = request.POST['GATEWAYNAME'] ,
+                    bank_txn_id = request.POST['BANKTXNID'] ,
+                    bank_name = request.POST['BANKNAME']
+
+
+                )
+            except:
+                order_success.objects.create(
+
+                    order_id = request.POST['ORDERID'] ,
+                    txn_id = request.POST['TXNID'] ,
+                    txn_amount = request.POST['TXNAMOUNT'] ,
+                    currency = request.POST['CURRENCY'] ,
+                    status = request.POST['STATUS'] ,
+                    resp_msg = request.POST['RESPMSG'] ,
+                    bank_txn_id = request.POST['BANKTXNID'] ,
+
+
+                )
+
             return render(request,"unsuccess.html",context)
 
     else:
