@@ -43,7 +43,7 @@ def home_page(request):
         context['paytm_code']+="document.f1.submit();"
         context['paytm_code']+='</script>'
         context['paytm_code']+='</form>'
-        order_id.objects.update()
+        order_id.objects.update(order)
 
         request.session['MID'] = data_dict['MID']
         request.session['ORDER_ID'] = data_dict['ORDER_ID']
