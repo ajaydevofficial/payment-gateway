@@ -83,7 +83,7 @@ def response_page(request):
                 currency = request.POST['CURRENCY'] ,
                 status = request.POST['STATUS'] ,
                 resp_msg = request.POST['RESPMSG'] ,
-                payment_mode = request.POST['PAMENTMODE'] ,
+                payment_mode = request.POST['PAYMENTMODE'] ,
                 gateway_name = request.POST['GATEWAYNAME'] ,
                 bank_txn_id = request.POST['BANKTXNID'] ,
                 bank_name = request.POST['BANKNAME']
@@ -105,7 +105,7 @@ def response_page(request):
                     currency = request.POST['CURRENCY'] ,
                     status = request.POST['STATUS'] ,
                     resp_msg = request.POST['RESPMSG'] ,
-                    payment_mode = request.POST['PAMENTMODE'] ,
+                    payment_mode = request.POST['PAYMENTMODE'] ,
                     gateway_name = request.POST['GATEWAYNAME'] ,
                     bank_txn_id = request.POST['BANKTXNID'] ,
                     bank_name = request.POST['BANKNAME']
@@ -113,18 +113,7 @@ def response_page(request):
 
                 )
             except:
-                order_failure.objects.create(
-
-                    order_id = request.POST['ORDERID'] ,
-                    txn_id = request.POST['TXNID'] ,
-                    txn_amount = request.POST['TXNAMOUNT'] ,
-                    currency = request.POST['CURRENCY'] ,
-                    status = request.POST['STATUS'] ,
-                    resp_msg = request.POST['RESPMSG'] ,
-                    bank_txn_id = request.POST['BANKTXNID'] ,
-
-
-                )
+                pass
 
             return render(request,"unsuccess.html",context)
 
