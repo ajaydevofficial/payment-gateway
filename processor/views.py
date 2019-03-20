@@ -45,15 +45,6 @@ def home_page(request):
         context['paytm_code']+='</form>'
         order_id.objects.update(order_id = int(order_id.objects.all().values('order_id')[0]['order_id'] + 1) )
 
-        request.session['MID'] = data_dict['MID']
-        request.session['ORDER_ID'] = data_dict['ORDER_ID']
-        request.session['CUST_ID'] = data_dict['CUST_ID']
-        request.session['TXN_AMOUNT'] = data_dict['TXN_AMOUNT']
-        request.session['CHANNEL_ID'] = data_dict['CHANNEL_ID']
-        request.session['WEBSITE'] = data_dict['WEBSITE']
-        request.session['INDUSTRY_TYPE_ID'] = data_dict['INDUSTRY_TYPE_ID']
-        request.session['CALLBACK_URL'] = data_dict['CALLBACK_URL']
-        request.session['CHECKSUMHASH'] = data_dict['CHECKSUMHASH']
 
     return render(request,"index.html",context)
 
@@ -80,7 +71,7 @@ def response_page(request):
                 'ORDER_ID':request.POST['ORDERID'],
                 'TXN_AMOUNT':request.POST['TXNAMOUNT']
             }
-            
+
             return render(request,"success.html",context)
 
     	else:
