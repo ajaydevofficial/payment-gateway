@@ -16,20 +16,10 @@
 
 		<!-- Header -->
 			<header id="header">{% csrf_token %}
-				<h1>Successfully Paid Rs.1</h1>
+				<h1>Order Failed</h1>
 				<p>Developers test for Payment Gateway completed</p>
 			</header>
-      <h1>Order Details</h1>
-      <table>
-        <tr>
-          <td>Order ID</td>
-          <td>{{ORDER_ID}}</td>
-        </tr>
-        <tr>
-          <td>Order Amount</td>
-          <td>{{TXN_AMOUNT}}</td>
-        </tr>
-      </table>
+      <p>Developers Test always result in transaction failure as it is using dummy values</p>
 			<footer id="footer">
 				<ul class="icons">
 					<li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
