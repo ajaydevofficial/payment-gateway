@@ -66,6 +66,7 @@ def response_page(request):
     verify = verify_checksum(respons_dict, MERCHANT_KEY, checksum)
 
     if verify:
+        
     	if respons_dict['RESPCODE'] == '01':
             context = {
                 'ORDER_ID':request.POST['ORDERID'],
@@ -75,8 +76,8 @@ def response_page(request):
             return render(request,"success.html",context)
 
     	else:
+            return render(request,"unsuccess.html",context)
 
-    		return render(request,"unsuccess.html",context)
     else:
     	return render(request,"unsuccess.html",context)
 
