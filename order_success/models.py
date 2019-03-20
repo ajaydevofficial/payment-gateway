@@ -2,9 +2,8 @@ from django.db import models
 
 # Create your models here.
 class order_success(models.Model):
-    
+
     order_id = models.CharField(max_length = 200)
-    order_amount = models.CharField(max_length = 200)
     txn_id = models.CharField(max_length = 200)
     txn_amount = models.CharField(max_length = 200)
     txn_date = models.CharField(max_length = 200)
