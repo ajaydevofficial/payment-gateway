@@ -45,21 +45,29 @@ def home_page(request):
         context['paytm_code']+="document.f1.submit();"
         context['paytm_code']+='</script>'
         context['paytm_code']+='</form>'
-        order_id.objects.update(order_id = int(order_id.objects.all().values('order_id')[0]['order_id'] + 1) )
         request.session['CHECKSUMHASH'] = data_dict['CHECKSUMHASH']
 
     return render(request,"index.html",context)
+
 
 @csrf_exempt
 def response_page(request):
     context={}
     print("Content-type: text/html\n")
-    if request.method=='POST':
-        print(request.POST)
     MERCHANT_KEY = 'jKc6NjVk0T1eZ0Bg'
+    data_dict = {
 
-    respons_dict = request.POST.copy()
-    checksum = request.POST['CHECKSUMHASH']
+        'MID' :'KLUIOi74399454829212', #use your test or original MID from paytm buisness account
+        'ORDER_ID' : str(order_id.objects.all().values('order_id')[0]['order_id']),
+    }
+    data_dict['CHECKSUMHASH'] = generate_checksum(data_dict,MERCHANT_KEY)
+    r = requests.get('https://securegw-stage.paytm.in/merchant-status/getTxnStatus?'+'JsonData='+str(data_dict))
+    v = "https://securegw-stage.paytm.in/merchant-status/getTxnStatus?" + "JsonData=" + str(data_dict)
+    print(r.json())
+    order_id.objects.update(order_id = int(order_id.objects.all().values('order_id')[0]['order_id'] + 1) )
+
+    respons_dict = r.json()
+    #checksum = request.POST['CHECKSUMHASH']
 
     if 'GATEWAYNAME' in respons_dict:
     	if respons_dict['GATEWAYNAME'] == 'WALLET':
@@ -85,29 +93,33 @@ def response_page(request):
             bank_txn_id = request.POST['BANKTXNID'] ,
             bank_name = request.POST['BANKNAME']
         )
-
+        if respons_dict['REFUNDAMT']!='0.00':
+            print("Refund")
         return render(request,"success.html",context)
 
     else:
-        try:
-            order_failure.objects.create(
+        if respons_dict['REFUNDAMT']!='0.00':
+            print("Hey Refund my money")
+        else:
+            try:
+                order_failure.objects.create(
 
-                order_id = request.POST['ORDERID'] ,
-                txn_id = request.POST['TXNID'] ,
-                txn_amount = request.POST['TXNAMOUNT'] ,
-                txn_date = request.POST['TXNDATE'] ,
-                currency = request.POST['CURRENCY'] ,
-                status = request.POST['STATUS'] ,
-                resp_msg = request.POST['RESPMSG'] ,
-                payment_mode = request.POST['PAYMENTMODE'] ,
-                gateway_name = request.POST['GATEWAYNAME'] ,
-                bank_txn_id = request.POST['BANKTXNID'] ,
-                bank_name = request.POST['BANKNAME']
-            )
-        except:
-                pass
+                    order_id = request.POST['ORDERID'] ,
+                    txn_id = request.POST['TXNID'] ,
+                    txn_amount = request.POST['TXNAMOUNT'] ,
+                    txn_date = request.POST['TXNDATE'] ,
+                    currency = request.POST['CURRENCY'] ,
+                    status = request.POST['STATUS'] ,
+                    resp_msg = request.POST['RESPMSG'] ,
+                    payment_mode = request.POST['PAYMENTMODE'] ,
+                    gateway_name = request.POST['GATEWAYNAME'] ,
+                    bank_txn_id = request.POST['BANKTXNID'] ,
+                    bank_name = request.POST['BANKNAME']
+                )
+            except:
+                    pass
 
-        return render(request,"unsuccess.html",context)
+            return render(request,"unsuccess.html",context)
 
 
     return render(request,"success.html",context)
