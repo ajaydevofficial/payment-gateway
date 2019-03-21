@@ -24,14 +24,14 @@ def home_page(request):
     MERCHANT_KEY = 'jKc6NjVk0T1eZ0Bg'
     data_dict = {
 
-        'MID' :'KLUIOi74399454829212', #use your test or original MID from paytm buisness account
-        'ORDER_ID' : str(order_id.objects.all().values('order_id')[0]['order_id']),
-        'CUST_ID' : 'Customer_ID', #use different ID for different customers
-        'TXN_AMOUNT' : '1.00', #change value accordingly
-        'CHANNEL_ID' : 'WEB',
-        'WEBSITE' : 'WEBSTAGING',
+        'MID'              :'KLUIOi74399454829212', #use your test or original MID from paytm buisness account
+        'ORDER_ID'         : str(order_id.objects.get(name='ORDER_ID').id),
+        'CUST_ID'          : 'Customer_ID', #use different ID for different customers
+        'TXN_AMOUNT'       : '1.00', #change value accordingly
+        'CHANNEL_ID'       : 'WEB',
+        'WEBSITE'          : 'WEBSTAGING',
         'INDUSTRY_TYPE_ID' : 'Retail',
-        'CALLBACK_URL' : 'http://127.0.0.1:8000/response/',#this for staging_purpose use your own response url
+        'CALLBACK_URL'     : 'http://127.0.0.1:8000/response/',#this for staging_purpose use your own response url
 
     }
     if request.method=='POST':
@@ -53,21 +53,23 @@ def home_page(request):
 
 @csrf_exempt
 def response_page(request):
+
     context={}
-    print("Content-type: text/html\n")
     MERCHANT_KEY = 'jKc6NjVk0T1eZ0Bg'
+    print(order_id.objects.get(name="REF_ID").id)
+
     data_dict = {
 
-        'MID' :'KLUIOi74399454829212', #use your test or original MID from paytm buisness account
-        'ORDER_ID' : str(order_id.objects.all().values('order_id')[0]['order_id']),
+        'MID'      :'KLUIOi74399454829212', #use your test or original MID from paytm buisness account
+        'ORDER_ID' : str(order_id.objects.get(name='ORDER_ID').id),
     }
-    data_dict['CHECKSUMHASH'] = generate_checksum(data_dict,MERCHANT_KEY)
-    r = requests.get('https://securegw-stage.paytm.in/merchant-status/getTxnStatus?'+'JsonData='+str(data_dict))
-    v = "https://securegw-stage.paytm.in/merchant-status/getTxnStatus?" + "JsonData=" + str(data_dict)
-    print(r.json())
-    order_id.objects.update(order_id = int(order_id.objects.all().values('order_id')[0]['order_id'] + 1) )
 
-    respons_dict = r.json()
+    data_dict['CHECKSUMHASH'] = generate_checksum(data_dict,MERCHANT_KEY)
+    order_id.objects.update(order_id = int(order_id.objects.get(name="ORDER_ID").id) + 1)
+    response = requests.get('https://securegw-stage.paytm.in/merchant-status/getTxnStatus?'+'JsonData='+str(data_dict))
+
+
+    respons_dict = response.json()
 
 
     if 'GATEWAYNAME' in respons_dict:
@@ -107,8 +109,27 @@ def response_page(request):
                 gateway_name = respons_dict['GATEWAYNAME'] ,
                 bank_txn_id = respons_dict['BANKTXNID'] ,
                 bank_name = respons_dict['BANKNAME'],
-                refund_amount =respons_dict['REFUNDAMT']
+                refund_amount = respons_dict['REFUNDAMT']
             )
+            refund_dict = {
+
+                'MID'         : 'KLUIOi74399454829212',
+                'REFID'       : str(order_id.objects.get(name='REF_ID')),
+                'TXNID'       : respons_dict['TXNID'],
+                'ORDERID'     : respons_dict['ORDERID'],
+                'REFUNDAMOUNT': respons_dict['REFUNDAMT'],
+                'TXNTYPE'     : 'REFUND',
+
+            }
+            refund_dict['CHECKSUM'] = generate_refund_checksum(refund_dict, MERCHANT_KEY, salt=None)
+            refund_response = requests.get(
+                "https://securegw-stage.paytm.in/refund/HANDLER_INTERNAL/REFUND?" +
+                "JsonData="+
+                str(refund_dict)
+            )
+            refund_response_dict = refund_response.json()
+            print(refund_response_dict)
+
         return render(request,"success.html",context)
 
     else:
@@ -127,6 +148,25 @@ def response_page(request):
                 bank_name = respons_dict['BANKNAME'],
                 refund_amount =respons_dict['REFUNDAMT']
             )
+            refund_dict = {
+
+                'MID'         : 'KLUIOi74399454829212',
+                'REFID'       : str(order_id.objects.get(name='REF_ID')),
+                'TXNID'       : respons_dict['TXNID'],
+                'ORDERID'     : respons_dict['ORDERID'],
+                'REFUNDAMOUNT': respons_dict['REFUNDAMT'],
+                'TXNTYPE'     : 'REFUND',
+
+            }
+            refund_dict['CHECKSUM'] = generate_refund_checksum(refund_dict, MERCHANT_KEY, salt=None)
+            refund_response = requests.get(
+                "https://securegw-stage.paytm.in/refund/HANDLER_INTERNAL/REFUND?" +
+                "JsonData="+
+                str(refund_dict)
+            )
+            refund_response_dict = refund_response.json()
+            print(refund_response_dict)
+
         try:
             order_failure.objects.create(
 
