@@ -6,4 +6,4 @@ class order_id(models.Model):
     order_id = models.IntegerField(default=1759)
 
     def __str__(self):
-        return 'ID'
+        return str(self.name)
