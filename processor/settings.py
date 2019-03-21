@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'Document',
     'order_success',
+    'order_refund',
     'order_failure',
     'order_payload',
     'django.contrib.admin',
