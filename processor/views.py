@@ -3,6 +3,7 @@ from Document.models import document
 from order_payload.models import order_id
 from order_success.models import order_success
 from order_failure.models import order_failure
+from order_refund.models import order_refund
 from django.views.decorators.csrf import csrf_exempt
 from .checksum import *
 import requests
@@ -67,7 +68,7 @@ def response_page(request):
     order_id.objects.update(order_id = int(order_id.objects.all().values('order_id')[0]['order_id'] + 1) )
 
     respons_dict = r.json()
-    #checksum = request.POST['CHECKSUMHASH']
+
 
     if 'GATEWAYNAME' in respons_dict:
     	if respons_dict['GATEWAYNAME'] == 'WALLET':
@@ -77,49 +78,74 @@ def response_page(request):
 
     if respons_dict['RESPCODE'] == '01':
         context = {
-            'ORDER_ID':request.POST['ORDERID'],
-            'TXN_AMOUNT':request.POST['TXNAMOUNT']
+            'ORDER_ID':respons_dict['ORDERID'],
+            'TXN_AMOUNT':respons_dict['TXNAMOUNT']
         }
         order_success.objects.create(
-            order_id = request.POST['ORDERID'] ,
-            txn_id = request.POST['TXNID'] ,
-            txn_amount = request.POST['TXNAMOUNT'] ,
-            txn_date = request.POST['TXNDATE'] ,
-            currency = request.POST['CURRENCY'] ,
-            status = request.POST['STATUS'] ,
-            resp_msg = request.POST['RESPMSG'] ,
-            payment_mode = request.POST['PAYMENTMODE'] ,
-            gateway_name = request.POST['GATEWAYNAME'] ,
-            bank_txn_id = request.POST['BANKTXNID'] ,
-            bank_name = request.POST['BANKNAME']
+            order_id = respons_dict['ORDERID'] ,
+            txn_id = respons_dict['TXNID'] ,
+            txn_amount = respons_dict['TXNAMOUNT'] ,
+            txn_date = respons_dict['TXNDATE'] ,
+            currency = respons_dict['CURRENCY'] ,
+            status = respons_dict['STATUS'] ,
+            resp_msg = respons_dict['RESPMSG'] ,
+            payment_mode = respons_dict['PAYMENTMODE'] ,
+            gateway_name = respons_dict['GATEWAYNAME'] ,
+            bank_txn_id = respons_dict['BANKTXNID'] ,
+            bank_name = respons_dict['BANKNAME']
         )
         if respons_dict['REFUNDAMT']!='0.00':
-            print("Refund")
+            order_refund.objects.create(
+                order_id = respons_dict['ORDERID'] ,
+                txn_id = respons_dict['TXNID'] ,
+                txn_amount = respons_dict['TXNAMOUNT'] ,
+                txn_date = respons_dict['TXNDATE'] ,
+                currency = respons_dict['CURRENCY'] ,
+                status = respons_dict['STATUS'] ,
+                resp_msg = respons_dict['RESPMSG'] ,
+                payment_mode = respons_dict['PAYMENTMODE'] ,
+                gateway_name = respons_dict['GATEWAYNAME'] ,
+                bank_txn_id = respons_dict['BANKTXNID'] ,
+                bank_name = respons_dict['BANKNAME'],
+                refund_amount =respons_dict['REFUNDAMT']
+            )
         return render(request,"success.html",context)
 
     else:
         if respons_dict['REFUNDAMT']!='0.00':
-            print("Hey Refund my money")
-        else:
-            try:
-                order_failure.objects.create(
+            order_refund.objects.create(
+                order_id = respons_dict['ORDERID'] ,
+                txn_id = respons_dict['TXNID'] ,
+                txn_amount = respons_dict['TXNAMOUNT'] ,
+                txn_date = respons_dict['TXNDATE'] ,
+                currency = respons_dict['CURRENCY'] ,
+                status = respons_dict['STATUS'] ,
+                resp_msg = respons_dict['RESPMSG'] ,
+                payment_mode = respons_dict['PAYMENTMODE'] ,
+                gateway_name = respons_dict['GATEWAYNAME'] ,
+                bank_txn_id = respons_dict['BANKTXNID'] ,
+                bank_name = respons_dict['BANKNAME'],
+                refund_amount =respons_dict['REFUNDAMT']
+            )
+        try:
+            order_failure.objects.create(
 
-                    order_id = request.POST['ORDERID'] ,
-                    txn_id = request.POST['TXNID'] ,
-                    txn_amount = request.POST['TXNAMOUNT'] ,
-                    txn_date = request.POST['TXNDATE'] ,
-                    currency = request.POST['CURRENCY'] ,
-                    status = request.POST['STATUS'] ,
-                    resp_msg = request.POST['RESPMSG'] ,
-                    payment_mode = request.POST['PAYMENTMODE'] ,
-                    gateway_name = request.POST['GATEWAYNAME'] ,
-                    bank_txn_id = request.POST['BANKTXNID'] ,
-                    bank_name = request.POST['BANKNAME']
-                )
-            except:
-                    pass
+                order_id = respons_dict['ORDERID'] ,
+                txn_id = respons_dict['TXNID'] ,
+                txn_amount = respons_dict['TXNAMOUNT'] ,
+                txn_date = respons_dict['TXNDATE'] ,
+                currency = respons_dict['CURRENCY'] ,
+                status = respons_dict['STATUS'] ,
+                resp_msg = respons_dict['RESPMSG'] ,
+                payment_mode = respons_dict['PAYMENTMODE'] ,
+                gateway_name = respons_dict['GATEWAYNAME'] ,
+                bank_txn_id = respons_dict['BANKTXNID'] ,
+                bank_name = respons_dict['BANKNAME']
+            )
+        except:
+                pass
 
-            return render(request,"unsuccess.html",context)
+        return render(request,"unsuccess.html",context)
 
 
     return render(request,"success.html",context)
