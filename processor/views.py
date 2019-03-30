@@ -46,7 +46,10 @@ def home_page(request):
         context['paytm_code']+="document.f1.submit();"
         context['paytm_code']+='</script>'
         context['paytm_code']+='</form>'
+        print('Submitted Data')
+        print(data_dict)
         request.session['CHECKSUMHASH'] = data_dict['CHECKSUMHASH']
+
 
     return render(request,"index.html",context)
 
@@ -56,7 +59,6 @@ def response_page(request):
 
     context={}
     MERCHANT_KEY = 'jKc6NjVk0T1eZ0Bg'
-    print(order_id.objects.get(name="REF_ID").id)
 
     data_dict = {
 
@@ -65,12 +67,17 @@ def response_page(request):
     }
 
     data_dict['CHECKSUMHASH'] = generate_checksum(data_dict,MERCHANT_KEY)
-    order_id.objects.update(order_id = int(order_id.objects.get(name="ORDER_ID").id) + 1)
+    temp_value = order_id.objects.filter(name="ORDER_ID")
+    temp_value.update(id = int(order_id.objects.get(name="ORDER_ID").id) + 1)
     response = requests.get('https://securegw-stage.paytm.in/merchant-status/getTxnStatus?'+'JsonData='+str(data_dict))
 
-
-    respons_dict = response.json()
-
+    try:
+        respons_dict = response.json()
+    except:
+        return render(request,"unsuccess.html",context)
+    print('\n')
+    print('Recieved from Paytm:')
+    print(respons_dict)
 
     if 'GATEWAYNAME' in respons_dict:
     	if respons_dict['GATEWAYNAME'] == 'WALLET':
@@ -96,7 +103,7 @@ def response_page(request):
             bank_txn_id = respons_dict['BANKTXNID'] ,
             bank_name = respons_dict['BANKNAME']
         )
-        if respons_dict['REFUNDAMT']!='0.00':
+        if float(respons_dict['REFUNDAMT'])!=0.0:
             order_refund.objects.create(
                 order_id = respons_dict['ORDERID'] ,
                 txn_id = respons_dict['TXNID'] ,
@@ -122,6 +129,7 @@ def response_page(request):
 
             }
             refund_dict['CHECKSUM'] = generate_refund_checksum(refund_dict, MERCHANT_KEY, salt=None)
+            print('\nchecksum genrated')
             refund_response = requests.get(
                 "https://securegw-stage.paytm.in/refund/HANDLER_INTERNAL/REFUND?" +
                 "JsonData="+
@@ -129,11 +137,15 @@ def response_page(request):
             )
             refund_response_dict = refund_response.json()
             print(refund_response_dict)
+            ref_id_var = order_id.objects.filter(name='REF_ID')
+            ref_id_var.update(id = int(order_id.objects.get(name='REF_ID').id) + 1)
 
         return render(request,"success.html",context)
 
     else:
-        if respons_dict['REFUNDAMT']!='0.00':
+        respons_dict['REFUNDAMT']='1.0'
+        if float(respons_dict['REFUNDAMT'])!=0.0:
+            print("\nEntered Refund App")
             order_refund.objects.create(
                 order_id = respons_dict['ORDERID'] ,
                 txn_id = respons_dict['TXNID'] ,
@@ -151,7 +163,7 @@ def response_page(request):
             refund_dict = {
 
                 'MID'         : 'KLUIOi74399454829212',
-                'REFID'       : str(order_id.objects.get(name='REF_ID')),
+                'REFID'       : str(order_id.objects.get(name='REF_ID').id),
                 'TXNID'       : respons_dict['TXNID'],
                 'ORDERID'     : respons_dict['ORDERID'],
                 'REFUNDAMOUNT': respons_dict['REFUNDAMT'],
@@ -166,6 +178,8 @@ def response_page(request):
             )
             refund_response_dict = refund_response.json()
             print(refund_response_dict)
+            ref_id_var = order_id.objects.filter(name='REF_ID')
+            ref_id_var.update(id = int(order_id.objects.get(name='REF_ID').id) + 1)
 
         try:
             order_failure.objects.create(
@@ -181,9 +195,22 @@ def response_page(request):
                 gateway_name = respons_dict['GATEWAYNAME'] ,
                 bank_txn_id = respons_dict['BANKTXNID'] ,
                 bank_name = respons_dict['BANKNAME']
-            )
+                )
+
         except:
-                pass
+                order_failure.objects.create(
+
+                    order_id = respons_dict['ORDERID'] ,
+                    txn_amount = respons_dict['TXNAMOUNT'] ,
+                    txn_date = respons_dict['TXNDATE'] ,
+                    currency = request.POST['CURRENCY'] ,
+                    status = respons_dict['STATUS'] ,
+                    resp_msg = respons_dict['RESPMSG'] ,
+                    gateway_name = respons_dict['GATEWAYNAME'] ,
+                    bank_txn_id = respons_dict['BANKTXNID'] ,
+                    bank_name = respons_dict['BANKNAME']
+                )
+                print(respons_dict['\nRESPMSG'])
 
         return render(request,"unsuccess.html",context)
 

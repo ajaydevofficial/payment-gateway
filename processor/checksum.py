@@ -23,10 +23,11 @@ def generate_checksum(param_dict, merchant_key, salt=None):
     return __encode__(hash_string, IV, merchant_key)
 
 def generate_refund_checksum(param_dict, merchant_key, salt=None):
-    for i in param_dict:
-        if("|" in param_dict[i]):
+    for i in sorted(param_dict.keys()):
+        if("|" in i):
             param_dict = {}
-            exit()
+            return
+
     params_string = __get_param_string__(param_dict)
     salt = salt if salt else __id_generator__(4)
     final_string = '%s|%s' % (params_string, salt)
@@ -83,9 +84,9 @@ def __id_generator__(size=6, chars=string.ascii_uppercase + string.digits + stri
 def __get_param_string__(params):
     params_string = []
     for key in sorted(params.keys()):
-        if("REFUND" in params[key] or "|" in params[key]):
+        if("REFUND" in key or "|" in key):
             respons_dict = {}
-            exit()
+            return
         value = params[key]
         params_string.append('' if value == 'null' else str(value))
     return '|'.join(params_string)
